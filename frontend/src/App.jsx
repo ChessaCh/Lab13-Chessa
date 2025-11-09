@@ -4,6 +4,8 @@ import Register from './pages/Register'
 import DashboardStudent from './pages/DashboardStudent'
 import DashboardLecturer from './pages/DashboardLecturer'
 import ProtectedRoute from './components/ProtectedRoute'
+import NilaiManage from './pages/NilaiManage'
+import NilaiStudent from './pages/NilaiStudent'
 
 export default function App() {
   return (
@@ -17,8 +19,16 @@ export default function App() {
           element={<ProtectedRoute role="student"><DashboardStudent /></ProtectedRoute>}
         />
         <Route
+          path="/dashboard/mahasiswa/nilai"
+          element={<ProtectedRoute role="student"><NilaiStudent /></ProtectedRoute>}
+        />
+        <Route
           path="/dashboard/dosen"
           element={<ProtectedRoute role="instructor"><DashboardLecturer /></ProtectedRoute>}
+        />
+        <Route
+          path="/dashboard/dosen/nilai"
+          element={<ProtectedRoute role="instructor"><NilaiManage /></ProtectedRoute>}
         />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

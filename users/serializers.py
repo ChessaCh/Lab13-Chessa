@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import re
+from .models import Nilai
 
 User = get_user_model()
 
@@ -10,7 +11,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('email', 'username', 'full_name', 'major', 'role', 'password', 'password_confirmation')
+        fields = ('email', 'full_name', 'major', 'password', 'password_confirmation')
         extra_kwargs = {
             'password': {'write_only': True, 'style': {'input_type': 'password'}},
             'full_name': {'required': True},
@@ -90,3 +91,44 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         })
         
         return data
+
+
+class NilaiSerializer(serializers.ModelSerializer):
+    # Accept either student email/NIM/ID from the client
+    student_identifier = serializers.CharField(write_only=True, required=True)
+    student_email = serializers.ReadOnlyField(source='student.email')
+    lecturer_email = serializers.ReadOnlyField(source='lecturer.email')
+
+    class Meta:
+        model = Nilai
+        fields = (
+            'id', 'student', 'student_identifier', 'student_email', 'lecturer', 'lecturer_email',
+            'course', 'score', 'note', 'created_at', 'updated_at'
+        )
+        read_only_fields = ('student', 'lecturer', 'created_at', 'updated_at')
+
+    def validate(self, attrs):
+        # Ensure score is within a reasonable range
+        score = attrs.get('score')
+        if score is not None and (score < 0 or score > 100):
+            raise serializers.ValidationError({'score': 'Nilai harus di antara 0 sampai 100.'})
+
+        ident = attrs.pop('student_identifier', None)
+        if not ident:
+            raise serializers.ValidationError({'student_identifier': 'Masukkan email/NIM/ID mahasiswa.'})
+
+        # Resolve student by ID, email, or username (NIM)
+        user = None
+        if isinstance(ident, str) and ident.isdigit():
+            try:
+                user = User.objects.get(pk=int(ident))
+            except User.DoesNotExist:
+                pass
+        if user is None:
+            user = User.objects.filter(email__iexact=ident).first() or User.objects.filter(username__iexact=ident).first()
+        if user is None:
+            raise serializers.ValidationError({'student_identifier': 'Mahasiswa tidak ditemukan.'})
+        if getattr(user, 'role', None) != 'student':
+            raise serializers.ValidationError({'student_identifier': 'User tersebut bukan mahasiswa.'})
+        attrs['student'] = user
+        return attrs

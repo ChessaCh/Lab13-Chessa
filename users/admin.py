@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser
+from .models import CustomUser, Nilai
 from django.contrib.auth.admin import UserAdmin
 
 class CustomUserAdmin(UserAdmin):
@@ -20,3 +20,9 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('email',)
     
 admin.site.register(CustomUser, CustomUserAdmin)
+
+@admin.register(Nilai)
+class NilaiAdmin(admin.ModelAdmin):
+    list_display = ('course', 'score', 'student', 'lecturer', 'created_at')
+    list_filter = ('course', 'lecturer')
+    search_fields = ('course', 'student__email', 'lecturer__email')

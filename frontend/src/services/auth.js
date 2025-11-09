@@ -1,3 +1,4 @@
+import { setAuthHeader } from './api'
 const KEY = 'auth'
 
 export function saveAuth(data) {
@@ -12,15 +13,23 @@ export function saveAuth(data) {
     role
   }
   localStorage.setItem(KEY, JSON.stringify(auth))
+  setAuthHeader(auth.access)
   return auth
 }
 
 export function getAuth() {
   const raw = localStorage.getItem(KEY)
   if (!raw) return null
-  try { return JSON.parse(raw) } catch { return null }
+  try {
+    const parsed = JSON.parse(raw)
+    setAuthHeader(parsed?.access)
+    return parsed
+  } catch {
+    return null
+  }
 }
 
 export function clearAuth() {
   localStorage.removeItem(KEY)
+  setAuthHeader(null)
 }

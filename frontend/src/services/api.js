@@ -24,3 +24,24 @@ export async function register(payload) {
   const res = await api.post('register/', payload)
   return res.data
 }
+
+// Nilai (Grades) endpoints
+export async function fetchNilai() {
+  const res = await api.get('nilai/')
+  return res.data
+}
+
+export async function createNilai(payload) {
+  const res = await api.post('nilai/', payload)
+  return res.data
+}
+
+export async function updateNilai(id, payload) {
+  const res = await api.put(`nilai/${id}/`, payload)
+  return res.data
+}
+
+export async function deleteNilai(id) {
+  const res = await api.delete(`nilai/${id}/`)
+  return res.data
+}
